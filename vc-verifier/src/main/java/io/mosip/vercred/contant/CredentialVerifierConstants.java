@@ -3,7 +3,7 @@ package io.mosip.vercred.contant;
 public class CredentialVerifierConstants {
 
     public static final String SIGNATURE_SUITE_TERM = "RsaSignature2018";
-    
+
 
     public static final String PUBLIC_KEY_PEM = "publicKeyPem";
 
@@ -13,9 +13,10 @@ public class CredentialVerifierConstants {
 
     public static final String RS256_ALGORITHM = "SHA256withRSA";
 
+	public static final String PS256_ALGORITHM_ANDROID = "SHA256withRSA/PSS";
 	public static final String PS256_ALGORITHM = "RSASSA-PSS";
 
-	public static final String PSS_PARAM_SHA_256 = "SHA-256";  
+	public static final String PSS_PARAM_SHA_256 = "SHA-256";
 
 	public static final String PSS_PARAM_MGF1 = "MGF1";
 
