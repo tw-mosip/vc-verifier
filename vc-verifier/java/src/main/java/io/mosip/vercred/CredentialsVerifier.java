@@ -25,6 +25,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jose.JWSObject;
 
 import io.mosip.vercred.exception.*;
+import io.mosip.vercred.signature.SignatureVerifier;
+import io.mosip.vercred.signature.impl.ED25519SignatureVerifierImpl;
+import io.mosip.vercred.signature.impl.PS256SignatureVerifierImpl;
+import io.mosip.vercred.signature.impl.RS256SignatureVerifierImpl;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.slf4j.Logger;
@@ -50,6 +54,14 @@ public class CredentialsVerifier {
 
     @Value("${mosip.config.server.file.storage.uri:}")
 	private String configServerFileStorageUrl;
+
+    private static final Map<String, SignatureVerifier> SIGNATURE_VERIFIER = new HashMap<>();
+
+    static {
+        SIGNATURE_VERIFIER.put(CredentialVerifierConstants.JWS_PS256_SIGN_ALGO_CONST, new PS256SignatureVerifierImpl());
+        SIGNATURE_VERIFIER.put(CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST, new RS256SignatureVerifierImpl());
+        SIGNATURE_VERIFIER.put(CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST, new ED25519SignatureVerifierImpl());
+    }
 
     public boolean verifyCredentials(String credentials) {
         CredVerifierLogger.info("Received Credentials Verification - Start");
@@ -88,7 +100,8 @@ public class CredentialsVerifier {
             byte[] actualData = JWSUtil.getJwsSigningInput(jwsObject.getHeader(), canonicalHashBytes);
             String jwsHeader = jwsObject.getHeader().getAlgorithm().getName();
             CredVerifierLogger.info("Performing signature verification after downloading the public key");
-            return verifyCredentialSignature(jwsHeader, publicKeyObj, actualData, vcSignBytes);
+            SignatureVerifier signatureVerifier = SIGNATURE_VERIFIER.get(jwsHeader);
+            return signatureVerifier.verify(publicKeyObj,actualData, vcSignBytes);
         } catch (PublicKeyNotFoundException | SignatureVerificationException ex){
             throw ex;
         }
@@ -116,37 +129,6 @@ public class CredentialsVerifier {
             CredVerifierLogger.error("Error Generating public key object", e);
         }
 		return null;
-    }
-
-    private boolean verifyCredentialSignature(String algorithm, PublicKey publicKey, byte[] actualData, byte[] signature) {
-
-        if (algorithm.equals(CredentialVerifierConstants.JWS_RS256_SIGN_ALGO_CONST)) {
-            try {
-                CredVerifierLogger.info("Validating signature using RS256 algorithm");
-                Signature rsSignature = Signature.getInstance(CredentialVerifierConstants.RS256_ALGORITHM);
-                rsSignature.initVerify(publicKey);
-                rsSignature.update(actualData);
-                return rsSignature.verify(signature);
-            } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-                CredVerifierLogger.error("Error in Verifying credentials(RS256)", e);
-                throw new SignatureVerificationException("Error while doing signature verification using RS256 algorithm");
-            }
-        }
-        try {
-            CredVerifierLogger.info("Validating signature using PS256 algorithm");
-            Signature psSignature = Signature.getInstance(CredentialVerifierConstants.PS256_ALGORITHM);
-
-            PSSParameterSpec pssParamSpec = new PSSParameterSpec(CredentialVerifierConstants.PSS_PARAM_SHA_256, CredentialVerifierConstants.PSS_PARAM_MGF1,
-                        MGF1ParameterSpec.SHA256, CredentialVerifierConstants.PSS_PARAM_SALT_LEN, CredentialVerifierConstants.PSS_PARAM_TF);
-            psSignature.setParameter(pssParamSpec);
-
-            psSignature.initVerify(publicKey);
-            psSignature.update(actualData);
-            return psSignature.verify(signature);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | InvalidAlgorithmParameterException e) {
-            CredVerifierLogger.error("Error in Verifying credentials(PS256)", e);
-            throw new SignatureVerificationException("Error while doing signature verification using PS256 algorithm");
-        }
     }
 
     private ConfigurableDocumentLoader getConfigurableDocumentLoader() {

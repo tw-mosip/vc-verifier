@@ -22,4 +22,8 @@ public class CredentialVerifierConstants {
 	public static final int PSS_PARAM_SALT_LEN = 32;
 
 	public static final int PSS_PARAM_TF = 1;
+
+	public static final String ED25519_ALGORITHM = "Ed25519";
+
+	public static final String JWS_EDDSA_SIGN_ALGO_CONST= "EdDSA";
 }
