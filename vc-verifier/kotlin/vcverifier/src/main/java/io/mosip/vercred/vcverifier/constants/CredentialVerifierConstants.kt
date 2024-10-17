@@ -5,6 +5,7 @@ object CredentialVerifierConstants {
     //const val PS256_ALGORITHM: String = "RSASSA-PSS"
 
     const val PUBLIC_KEY_PEM = "publicKeyPem"
+    const val PUBLIC_KEY_MULTIBASE = "publicKeyMultibase"
 
     const val PSS_PARAM_SHA_256 = "SHA-256"
     const val PSS_PARAM_MGF1 = "MGF1"

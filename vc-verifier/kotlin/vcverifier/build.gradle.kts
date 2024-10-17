@@ -51,7 +51,7 @@ dependencies {
 
 
 }
-
+tasks.register("prepareKotlinBuildScriptModel"){}
 tasks.withType<Test> {
     useJUnitPlatform()
 }
