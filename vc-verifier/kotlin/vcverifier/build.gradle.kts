@@ -35,6 +35,7 @@ android {
 }
 
 dependencies {
+    implementation ("net.i2p.crypto:eddsa:0.3.0")
     implementation(libs.orgJson)
     implementation(libs.ldSignaturesJava) {
         exclude(group = "com.apicatalog", module = "titanium-json-ld")
@@ -45,6 +46,10 @@ dependencies {
     implementation(libs.jsonldCommonJava)
     implementation(libs.nimbusJoseJwt)
     implementation(libs.springWeb)
+    implementation("io.github.novacrypto:Base58:2022.01.17")
+    implementation("nl.reinkrul.did:did-resolvers:0.1.0")
+
+
 
     testImplementation(libs.mockk)
     testImplementation(libs.junitJupiter)
