@@ -3,7 +3,6 @@ package io.mosip.vercred.vcverifier
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.nimbusds.jose.JWSObject
-import foundation.identity.jsonld.ConfigurableDocumentLoader
 import foundation.identity.jsonld.JsonLDObject
 import info.weboftrust.ldsignatures.LdProof
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer
@@ -44,13 +43,18 @@ class PresentationVerifier {
     fun verify(presentation: String): PresentationVerificationResult {
 
         logger.info("Received Presentation For Verification - Start")
-        val proofVerificationStatus: Boolean
+        val proofVerificationStatus: VerificationStatus
+        val vcJsonLdObject: JsonLDObject
+
         try {
-            if (!Util.isJsonLd(presentation)) throw PresentationNotSupportedException("Unsupported VP Token type")
-            val confDocumentLoader: ConfigurableDocumentLoader =
-                Util.getConfigurableDocumentLoader()
-            val vcJsonLdObject: JsonLDObject = JsonLDObject.fromJson(presentation)
-            vcJsonLdObject.documentLoader = confDocumentLoader
+
+            vcJsonLdObject = JsonLDObject.fromJson(presentation)
+        } catch (e: RuntimeException) {
+            throw PresentationNotSupportedException("Unsupported VP Token type")
+        }
+
+        try {
+            vcJsonLdObject.documentLoader = Util.getConfigurableDocumentLoader()
             val ldProof: LdProof = LdProof.getFromJsonLDObject(vcJsonLdObject)
 
             val canonicalHashBytes = URDNA2015Canonicalizer().canonicalize(ldProof, vcJsonLdObject)
@@ -63,23 +67,25 @@ class PresentationVerifier {
                 val jwsObject = JWSObject.parse(signJWS)
                 val signature = jwsObject.signature.decode()
                 val actualData = JWSUtil.getJwsSigningInput(jwsObject.header, canonicalHashBytes)
-                proofVerificationStatus = ED25519SignatureVerifierImpl().verify(
-                    publicKeyObj,
-                    actualData,
-                    signature,
-                    provider
-                )
+                proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
+                        publicKeyObj,
+                        actualData,
+                        signature,
+                        provider
+                    )
+                ) VerificationStatus.SUCCESS else VerificationStatus.INVALID
             } else if (ldProof.type == ED25519_PROOF_TYPE_2020 && !ldProof.proofValue.isNullOrEmpty()) {
                 val proofValue = ldProof.proofValue
                 val signature = Multibase.decode(proofValue)
-                proofVerificationStatus = ED25519SignatureVerifierImpl().verify(
-                    publicKeyObj,
-                    canonicalHashBytes,
-                    signature,
-                    provider
-                )
+                proofVerificationStatus = if (ED25519SignatureVerifierImpl().verify(
+                        publicKeyObj,
+                        canonicalHashBytes,
+                        signature,
+                        provider
+                    )
+                ) VerificationStatus.SUCCESS else VerificationStatus.INVALID
             } else {
-                proofVerificationStatus = false
+                proofVerificationStatus = VerificationStatus.INVALID
             }
 
         } catch (e: Exception) {
@@ -88,8 +94,7 @@ class PresentationVerifier {
                 is IllegalStateException,
                 is InvalidKeySpecException,
                 is SignatureNotSupportedException,
-                is SignatureVerificationException,
-                is PresentationNotSupportedException -> throw e
+                is SignatureVerificationException -> throw e
 
                 else -> {
                     throw UnknownException("Error while doing verification of verifiable presentation")
@@ -100,7 +105,7 @@ class PresentationVerifier {
         val vcVerificationResults: List<VCResult> =
             getVCVerificationResults(JSONObject(presentation).getJSONArray(Shared.KEY_VERIFIABLE_CREDENTIAL))
 
-        return PresentationVerificationResult(proofVerificationStatus,vcVerificationResults)
+        return PresentationVerificationResult(proofVerificationStatus, vcVerificationResults)
     }
 
     private fun getVCVerificationResults(verifiableCredentials: JSONArray): List<VCResult> {
