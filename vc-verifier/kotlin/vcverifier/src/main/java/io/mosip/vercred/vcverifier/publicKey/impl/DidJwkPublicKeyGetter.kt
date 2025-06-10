@@ -1,7 +1,6 @@
 package io.mosip.vercred.vcverifier.publicKey.impl
 
 import com.nimbusds.jose.jwk.JWK
-import io.mosip.vercred.vcverifier.constants.CredentialVerifierConstants.JWS_EDDSA_SIGN_ALGO_CONST
 import io.mosip.vercred.vcverifier.exception.UnknownException
 import io.mosip.vercred.vcverifier.publicKey.PublicKeyGetter
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
@@ -25,10 +24,7 @@ class DidJwkPublicKeyGetter : PublicKeyGetter {
             val jwk: JWK = JWK.parse(
                 String(
                     b64Decoder.decodeFromBase64UrlFormatEncoded(
-                        verificationMethod.toString()
-                            .split("#".toRegex())
-                            .first()
-                            .split("did:jwk:")[1]
+                        verificationMethod.toString().split("did:jwk:")[1]
                     )
                 )
             )
@@ -38,7 +34,7 @@ class DidJwkPublicKeyGetter : PublicKeyGetter {
             val subjectPublicKeyInfo = SubjectPublicKeyInfo(algorithmIdentifier, publicKeyBytes)
             val encodedKey = subjectPublicKeyInfo.encoded
             val keySpec = X509EncodedKeySpec(encodedKey)
-            val keyFactory = KeyFactory.getInstance(JWS_EDDSA_SIGN_ALGO_CONST, provider)
+            val keyFactory = KeyFactory.getInstance("EdDSA", provider)
             return keyFactory.generatePublic(keySpec)
         } catch (e: Exception) {
             when (e) {
