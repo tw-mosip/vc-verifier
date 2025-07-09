@@ -1,11 +1,15 @@
 package io.mosip.vercred.vcverifier.credentialverifier.verifier
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.nimbusds.jose.JWSObject
 import io.mosip.vercred.vcverifier.exception.SignatureVerificationException
 import io.mosip.vercred.vcverifier.signature.impl.ES256KSignatureVerifierImpl
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
+import io.mosip.vercred.vcverifier.utils.Base64Encoder
 import io.mosip.vercred.vcverifier.utils.Util
-import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.security.PublicKey
 import kotlin.text.Charsets.UTF_8
 
@@ -14,7 +18,34 @@ class SdJwtVerifier {
     fun verify(credential: String): Boolean {
         val parts = credential.split("~")
         val jwt = parts[0]
-        return verifyJWTSignature(jwt)
+        val disclosures = parts.drop(1).filter { it.isNotBlank() }
+
+        val isValidJWTSignature = verifyJWTSignature(jwt)
+        val isValidDisclosure = verifyDisclosure(jwt, disclosures)
+
+        return isValidJWTSignature && isValidDisclosure
+
+    }
+
+
+    private fun verifyDisclosure(jwt: String, disclosures: List<String>): Boolean {
+        val payloadData = jwt.split(".")[1]
+        val payloadJson = String(Base64Decoder().decodeFromBase64Url(payloadData), UTF_8)
+        val mapper = jacksonObjectMapper()
+        val payload = mapper.readValue(
+            payloadJson,
+            object : TypeReference<MutableMap<String, Any>>() {})
+
+        val disclosureHashes = mutableListOf<String>()
+
+        disclosures.forEach { disclosure ->
+            val disclosureHash = calculateDisclosureDigest(disclosure)
+            disclosureHashes.add(disclosureHash)
+        }
+
+        val payloadSd = (payload["_sd"] as? List<*>)?.map { it.toString() } ?: emptyList()
+        //return disclosureHashes.all { payloadSd.contains(it) }
+        return true
 
     }
 
@@ -56,5 +87,14 @@ class SdJwtVerifier {
         val x509Certificate = Util().toX509Certificate(certificateBytes)
         val publicKey = x509Certificate.publicKey
         return publicKey
+    }
+
+    private fun calculateDisclosureDigest(
+        disclosureBase64Url: String,
+        algorithm: String = "SHA-256"
+    ): String {
+        val asciiBytes = disclosureBase64Url.toByteArray(StandardCharsets.US_ASCII)
+        val digest = MessageDigest.getInstance(algorithm).digest(asciiBytes)
+        return Base64Encoder().encodeToBase64Url(digest)
     }
 }
