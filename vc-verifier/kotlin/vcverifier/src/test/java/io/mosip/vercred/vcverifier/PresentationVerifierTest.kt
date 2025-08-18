@@ -2,6 +2,8 @@ package io.mosip.vercred.vcverifier
 
 import io.mosip.vercred.vcverifier.data.VPVerificationStatus
 import io.mosip.vercred.vcverifier.data.VerificationStatus
+import io.mosip.vercred.vcverifier.exception.DidResolverExceptions
+import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import org.junit.Ignore
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -62,6 +64,6 @@ class PresentationVerifierTest {
             ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/InvalidPublicKeyEd25519Signature2018SignedVP-didKey.json")
         val vc = String(Files.readAllBytes(file.toPath()))
 
-        assertThrows<IllegalStateException> { PresentationVerifier().verify(vc) }
+        assertThrows<UnsupportedDidUrl> { PresentationVerifier().verify(vc) }
     }
 }
