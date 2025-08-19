@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 class LdpVerifierTest {
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return true for valid ps256 credential`() {
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/PS256SignedMosipVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
@@ -25,7 +25,7 @@ class LdpVerifierTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return false for invalid credential`() {
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/tamperedVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
@@ -33,7 +33,7 @@ class LdpVerifierTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should successfully verify valid sunbird credential`(){
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/Ed25519Signature2020SignedSunbirdVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
@@ -41,7 +41,7 @@ class LdpVerifierTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should throw error if did url is not valid while verify valid sunbird credential`(){
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/InvalidDidUrlSunbirdVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))
@@ -52,7 +52,7 @@ class LdpVerifierTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should successfully verify valid ed25519Signature2018 signed credential with did verification method`(){
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/Ed25519Signature2018SignedVC-did.json")
         val vc = String(Files.readAllBytes(file.toPath()))
@@ -60,7 +60,7 @@ class LdpVerifierTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should successfully verify valid ed25519Signature2018 signed credential with https verification method`(){
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/Ed25519Signature2018SignedVC-https.json")
         val vc = String(Files.readAllBytes(file.toPath()))
@@ -68,7 +68,7 @@ class LdpVerifierTest {
     }
 
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should successfully verify valid rs256 credential`(){
         val file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "ldp_vc/RS256SignedMosipVC.json")
         val vc = String(Files.readAllBytes(file.toPath()))

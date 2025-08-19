@@ -5,6 +5,7 @@ import io.mosip.vercred.vcverifier.data.VerificationStatus
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions
 import io.mosip.vercred.vcverifier.exception.DidResolverExceptions.UnsupportedDidUrl
 import org.junit.Ignore
+import io.mosip.vercred.vcverifier.exception.PresentationNotSupportedException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -32,7 +33,8 @@ class PresentationVerifierTest {
 
     }
 
-    @Ignore("Skipping this test ")
+    @Test
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
     fun `should return true for valid presentation verification success JsonWebSignature2020`() {
         val file =
             ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/JsonWebSignature2020SignedVP-didJws.json")
@@ -65,5 +67,27 @@ class PresentationVerifierTest {
         val vc = String(Files.readAllBytes(file.toPath()))
 
         assertThrows<UnsupportedDidUrl> { PresentationVerifier().verify(vc) }
+    }
+
+    @Test
+    fun `should throw error when vc is not jsonld`() {
+        val file =
+            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/InvalidPublicKeyEd25519Signature2018SignedVP-didKey.json")
+        val vc = String(Files.readAllBytes(file.toPath()))
+
+        assertThrows<PresentationNotSupportedException> { PresentationVerifier().verify("invalid") }
+    }
+
+    @Test
+    @Timeout(value = 20, unit = TimeUnit.SECONDS)
+    fun `should throw error for invalid presentation verification of Ed25519Signature2020`() {
+        val file =
+            ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "vp/Ed25519Signature2020SignedVP-didKey.json")
+        val vc = String(Files.readAllBytes(file.toPath()))
+
+        val verificationResult = PresentationVerifier().verify(vc)
+
+        assertEquals(VPVerificationStatus.INVALID,verificationResult.proofVerificationStatus)
+
     }
 }
