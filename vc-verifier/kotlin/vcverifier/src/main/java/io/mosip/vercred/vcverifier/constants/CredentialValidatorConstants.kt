@@ -112,4 +112,9 @@ object CredentialValidatorConstants {
         "Ed25519Signature2020",
         "EcdsaSecp256k1Signature2019"
     )
+
+    val DATE_REGEX = Regex(
+        """^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)([01][0-9]|2[0-3]):([0-5][0-9]))$""",
+        RegexOption.IGNORE_CASE
+    )
 }

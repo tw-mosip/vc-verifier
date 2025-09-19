@@ -32,10 +32,10 @@ import io.mosip.vercred.vcverifier.data.ValidationStatus
 import io.mosip.vercred.vcverifier.exception.ValidationException
 import io.mosip.vercred.vcverifier.utils.Base64Decoder
 import io.mosip.vercred.vcverifier.utils.DateUtils
-import io.mosip.vercred.vcverifier.utils.DateUtils.formatEpochSecondsToIsoUtc
 import io.mosip.vercred.vcverifier.utils.Util.isValidUri
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Date
 
 class SdJwtValidator {
     companion object {
@@ -167,7 +167,7 @@ class SdJwtValidator {
 
     private fun validateTimeClaims(payload: JSONObject) {
         payload.optLong("iat", -1).takeIf { it > 0 }?.let { iat ->
-            if (DateUtils.isFutureDateWithTolerance(formatEpochSecondsToIsoUtc(iat))) {
+            if (DateUtils.isFutureDateWithTolerance(Date(iat * 1000).toString())) {
                 throw ValidationException(
                     ERROR_CURRENT_DATE_BEFORE_ISSUANCE_DATE,
                     ERROR_CODE_CURRENT_DATE_BEFORE_ISSUANCE_DATE
@@ -176,7 +176,7 @@ class SdJwtValidator {
         }
 
         payload.optLong("nbf", -1).takeIf { it > 0 }?.let { nbf ->
-            if (DateUtils.isFutureDateWithTolerance(formatEpochSecondsToIsoUtc(nbf))) {
+            if (DateUtils.isFutureDateWithTolerance(Date(nbf * 1000).toString())) {
                 throw ValidationException(
                     ERROR_CURRENT_DATE_BEFORE_PROCESSING_DATE,
                     ERROR_CODE_CURRENT_DATE_BEFORE_PROCESSING_DATE
@@ -185,7 +185,7 @@ class SdJwtValidator {
         }
 
         payload.optLong("exp", -1).takeIf { it > 0 }?.let { exp ->
-            if (DateUtils.isVCExpired(formatEpochSecondsToIsoUtc(exp))) {
+            if (DateUtils.isVCExpired(Date(exp * 1000).toString())) {
                 throw ValidationException(ERROR_MESSAGE_VC_EXPIRED, ERROR_CODE_VC_EXPIRED)
             }
         }
