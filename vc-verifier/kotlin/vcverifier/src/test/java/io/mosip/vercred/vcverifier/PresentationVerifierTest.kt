@@ -147,9 +147,8 @@ class PresentationVerifierTest {
         assertEquals(VerificationStatus.SUCCESS, result.vcResults[0].status)
         assertEquals(1, credentialStatus.size)
         assertEquals("revocation", credentialStatus[0].purpose)
-        assertEquals(1, credentialStatus[0].status)
-        assertNull(credentialStatus[0].error)
-        assertFalse(credentialStatus[0].valid)
+        assertNull(credentialStatus[0].result.error)
+        assertFalse(credentialStatus[0].result.isSuccess)
     }
 
     @Test
@@ -186,8 +185,7 @@ class PresentationVerifierTest {
         assertEquals(VerificationStatus.SUCCESS, result.vcResults[0].status)
         assertEquals(1, credentialStatus.size)
         assertEquals("revocation", credentialStatus[0].purpose)
-        assertEquals(0, credentialStatus[0].status)
-        assertNull(credentialStatus[0].error)
-        assert(credentialStatus[0].valid)
+        assertNull(credentialStatus[0].result.error)
+        assert(credentialStatus[0].result.isSuccess)
     }
 }
